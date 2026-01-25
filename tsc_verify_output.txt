@@ -1,0 +1,2 @@
+src/components/ui/resizable.tsx(4,17): error TS2724: '"react-resizable-panels"' has no exported member named 'PanelGroup'. Did you mean 'PanelProps'?
+src/components/ui/resizable.tsx(4,29): error TS2305: Module '"react-resizable-panels"' has no exported member 'PanelResizeHandle'.
