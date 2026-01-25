@@ -13,7 +13,10 @@ export const streamTokenProvider = async () => {
     process.env.STREAM_SECRET_KEY!
   );
 
-  const token = streamClient.generateUserToken({ user_id: user.id });
+  const token = streamClient.generateUserToken({
+    user_id: user.id,
+    iat: Math.floor((Date.now() - 10000) / 1000), // Set iat 10 seconds in the past
+  });
 
   return token;
 };
