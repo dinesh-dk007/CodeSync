@@ -24,7 +24,7 @@ function CodeEditor() {
   };
 
   return (
-    <ResizablePanelGroup direction="vertical" className="min-h-[calc-100vh-4rem-1px]">
+    <ResizablePanelGroup orientation="vertical" className="min-h-[calc-100vh-4rem-1px]">
       {/* QUESTION SECTION */}
       <ResizablePanel>
         <ScrollArea className="h-full">
@@ -161,7 +161,7 @@ function CodeEditor() {
       <ResizableHandle withHandle />
 
       {/* CODE EDITOR */}
-      <ResizablePanel defaultSize={60} maxSize={100}>
+      <ResizablePanel defaultSize={60} maxSize={600}>
         <div className="h-full relative">
           <Editor
             height={"100%"}
