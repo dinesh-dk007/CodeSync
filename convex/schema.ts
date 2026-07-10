@@ -29,4 +29,11 @@ export default defineSchema({
     interviewerId: v.string(),
     interviewId: v.id("interviews"),
   }).index("by_interview_id", ["interviewId"]),
+
+  meetingCode: defineTable({
+    meetingId: v.string(),
+    questionId: v.string(),
+    language: v.string(),
+    code: v.string(),
+  }).index("by_meeting_id", ["meetingId"]),
 });

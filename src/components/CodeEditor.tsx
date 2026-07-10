@@ -1,5 +1,8 @@
 import { CODING_QUESTIONS, LANGUAGES } from "@/constants";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -8,9 +11,53 @@ import { AlertCircleIcon, BookIcon, LightbulbIcon } from "lucide-react";
 import Editor from "@monaco-editor/react";
 
 function CodeEditor() {
+  const { id } = useParams();
+  const meetingId = Array.isArray(id) ? id[0] : id ?? "";
+  const meetingCode = useQuery(api.meetingCode.getByMeetingId, { meetingId });
+  const upsertMeetingCode = useMutation(api.meetingCode.upsertMeetingCode);
+
   const [selectedQuestion, setSelectedQuestion] = useState(CODING_QUESTIONS[0]);
   const [language, setLanguage] = useState<"javascript" | "python" | "java">(LANGUAGES[0].id);
   const [code, setCode] = useState(selectedQuestion.starterCode[language]);
+  const lastSavedStateRef = useRef<string | null>(null);
+  const lastAppliedRemoteStateRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!meetingCode) return;
+
+    const question = CODING_QUESTIONS.find((q) => q.id === meetingCode.questionId) ?? CODING_QUESTIONS[0];
+    const resolvedLanguage =
+      (meetingCode.language as "javascript" | "python" | "java") ?? language;
+    const nextCode = meetingCode.code ?? question.starterCode[resolvedLanguage];
+    const remoteStateKey = `${question.id}:${resolvedLanguage}:${nextCode}`;
+
+    if (lastAppliedRemoteStateRef.current === remoteStateKey) return;
+
+    lastAppliedRemoteStateRef.current = remoteStateKey;
+    setSelectedQuestion(question);
+    setLanguage(resolvedLanguage);
+    setCode(nextCode);
+  }, [meetingCode?.questionId, meetingCode?.language, meetingCode?.code]);
+
+  useEffect(() => {
+    if (!meetingId || !upsertMeetingCode) return;
+
+    const currentStateKey = `${selectedQuestion.id}:${language}:${code}`;
+
+    if (lastSavedStateRef.current === currentStateKey) return;
+
+    const timeout = setTimeout(() => {
+      lastSavedStateRef.current = currentStateKey;
+      upsertMeetingCode({
+        meetingId,
+        questionId: selectedQuestion.id,
+        language,
+        code,
+      });
+    }, 700);
+
+    return () => clearTimeout(timeout);
+  }, [meetingId, selectedQuestion.id, language, code, upsertMeetingCode]);
 
   const handleQuestionChange = (questionId: string) => {
     const question = CODING_QUESTIONS.find((q) => q.id === questionId)!;
